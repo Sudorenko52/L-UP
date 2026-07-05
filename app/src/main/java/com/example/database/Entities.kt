@@ -4,6 +4,13 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
 import androidx.room.Index
+import com.example.PriorityLevel
+import com.example.TaskStatus
+import com.example.QuestType
+import com.example.QuestStatus
+import com.example.RewardChest
+import com.example.HabitStatus
+import com.example.ActivityLogType
 
 // ---------------------------------------------------------------------------------
 // 9.3 Таблиця User
@@ -45,20 +52,25 @@ data class UserEntity(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["userId"])]
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["status"]),
+        Index(value = ["dueDate"]),
+        Index(value = ["createdAt"])
+    ]
 )
 data class TaskEntity(
     @PrimaryKey val id: String, // UUID
     val userId: String, // User 1→N Tasks
     val title: String,
     val description: String,
-    val priority: String, // CRITICAL, IMPORTANT, NORMAL
+    val priority: PriorityLevel, // CRITICAL, IMPORTANT, NORMAL
     val xp: Int,
     val coins: Int,
     val dueDate: String, // dueDate as "Today", "Tomorrow", "Upcoming" or date string
     val dueTime: String, // dueTime e.g., "18:00"
     val repeatType: String, // Once, Daily, etc. (repeatType)
-    val status: String, // "Active", "Completed"
+    val status: TaskStatus, // ACTIVE, COMPLETED
     val createdAt: Long, // UTC
     val completedAt: Long?, // UTC
     
@@ -80,7 +92,11 @@ data class TaskEntity(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["userId"])]
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["status"]),
+        Index(value = ["createdAt"])
+    ]
 )
 data class HabitEntity(
     @PrimaryKey val id: String, // UUID
@@ -91,7 +107,7 @@ data class HabitEntity(
     val xp: Int,
     val coins: Int,
     val coinPenalty: Int, // coinPenalty
-    val status: String, // e.g., "Active"
+    val status: HabitStatus, // e.g., ACTIVE, INACTIVE
     val createdAt: Long, // UTC
     val lastCompletedAt: Long?, // UTC
     
@@ -120,25 +136,30 @@ data class HabitEntity(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["userId"])]
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["status"]),
+        Index(value = ["type"]),
+        Index(value = ["createdAt"])
+    ]
 )
 data class QuestEntity(
     @PrimaryKey val id: String, // UUID
     val userId: String, // User 1→N Quests
     val title: String,
-    val type: String, // MAIN, WEEKLY, MONTHLY, SPECIAL
+    val type: QuestType, // MAIN, WEEKLY, MONTHLY, SPECIAL
     val target: Float, // targetValue
     val progress: Float, // currentValue
     val xpReward: Int,
     val coinReward: Int,
-    val status: String, // ACTIVE, COMPLETED, EXPIRED
+    val status: QuestStatus, // ACTIVE, COMPLETED, EXPIRED
     val isManual: Boolean, // isManual
     val createdAt: Long, // UTC
     val completedAt: Long?, // UTC
     
     // Additional fields to maintain Quest state in UI
     val description: String,
-    val chest: String, // RewardChest name
+    val chest: RewardChest, // RewardChest name
     val targetType: String,
     val durationText: String,
     val tagsJson: String
@@ -162,10 +183,13 @@ data class AchievementEntity(
 // ---------------------------------------------------------------------------------
 // Business rule: "Видалення Tasks/Habits не видаляє ActivityLog."
 // Therefore, we do not define cascading foreign keys here, referenceId is stored purely as a reference string.
-@Entity(tableName = "activity_logs")
+@Entity(
+    tableName = "activity_logs",
+    indices = [Index(value = ["createdAt"])]
+)
 data class ActivityLogEntity(
     @PrimaryKey val id: String, // UUID
-    val type: String, // "TASK", "HABIT", "QUEST", "ACHIEVEMENT"
+    val type: ActivityLogType, // TASK, HABIT, QUEST, ACHIEVEMENT
     val referenceId: String,
     val xpChange: Int,
     val coinChange: Int,

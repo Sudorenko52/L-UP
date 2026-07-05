@@ -82,6 +82,9 @@ interface QuestDao {
     @Query("SELECT * FROM quests ORDER BY createdAt DESC")
     fun getAllQuestsFlow(): Flow<List<QuestEntity>>
 
+    @Query("SELECT * FROM quests")
+    suspend fun getAllQuestsDirect(): List<QuestEntity>
+
     @Query("SELECT * FROM quests WHERE id = :id")
     suspend fun getQuestById(id: String): QuestEntity?
 
